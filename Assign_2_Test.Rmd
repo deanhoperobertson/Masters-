@@ -1,0 +1,461 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+#Assignment 2 
+
+```{r}
+rm(list = ls())
+library(nnet)
+require(FNN)
+library(tibble)
+
+#import training data
+data = read.csv("Train_Digits_20180302.csv", header = T)
+train<-as.matrix(data)
+
+#replace digits with binary even/odd (1/0) + chnage colname
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+
+# Create a 28*28 matrix with pixel color values and call the first 1st row
+m = matrix(unlist(train[1,-1]), nrow = 28, byrow = TRUE)
+# reverses (rotates the matrix) to flip the digit the correct way round
+rotate <- function(x)t(apply(x, 1, rev)) 
+# Show the digit in black and white
+image(rotate(m),col= c("white", "black"))
+
+# Plot some of images
+par(mfrow=c(2,3))
+lapply(1:6, 
+       function(x) image(
+         rotate(matrix(unlist(train[x,-1]),nrow = 28, byrow = TRUE)),
+         col=c("white","black"),
+         xlab=train[x,1]
+       )
+)
+```
+# Use K-nearest neighbours to classify
+
+
+```{r}
+rm(list = ls())
+library(nnet)
+library(tibble)
+require(class)
+require(e1071)
+
+#import training data
+data = read.csv("Train_Digits_20180302.csv", header = T)
+
+#replace digits with binary even/odd (1/0) + chnage colname
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train = 1:2000
+
+#train and test variables for KNN
+train_data = data[train, 2:785]#80%
+test_data = data[-train,2:785] #20%
+
+#train and test response for KNN
+train_resp = data[train,]$binary
+test_resp = data[-train,]$binary
+
+
+#apply K-Nearest Neighbours to the train and test data set
+knn.pred = knn(train_data, train_data,train_resp, k=5, prob=TRUE)
+
+#(TRAIN)
+#quantify the score
+mean(knn.pred==train_resp)
+
+#(TEST)
+knn.pred = knn(train_data, test_data,train_resp, k=5, prob=TRUE)
+mean(knn.pred==test_resp)
+
+# tune knn to find optimal k value
+knn_cross <- tune.knn(x = data[train, 2:785],y = as.factor(data[train,1]),k = 1:30,tunecontrol = tune.control(sampling = "cross"), cross = 10)
+
+
+#(TEST)
+knn_cross$performances
+
+pdf('KNN_Cross.pdf')
+matplot(knn_cross$performances[,1],knn_cross$performances[,2], pch = 19, col = "blue", type = "b", ylab="Error Rate", xlab="K-value")
+dev.off()
+
+#apply K-Nearest Neighbours to the train and test data set
+knn.pred = knn(train_data, train_data,train_resp, k=3, prob=TRUE)
+mean(knn.pred==train_resp)
+
+#Select new kvalue of k=3
+knn.pred = knn(train_data, test_data,train_resp, k=3, prob=TRUE)
+mean(knn.pred==test_resp)
+
+#Show the table of results
+table(knn.pred,test_resp)
+
+```
+#Decision Trees
+
+```{r}
+rm(list = ls())
+require(tree)
+#import training data
+data = read.csv("Train_Digits_20180302.csv", header = T)
+
+#replace digits with binary even/odd (1/0) + chnage colname
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train = 1:2000
+
+train_tree = data[train,]
+test_tree = data[-train,]
+
+#check if response variable is a factor variable 
+is.factor(train_tree$binary)
+
+#declare the response variable as a "factor" vraiable
+train_tree$binary = as.factor(train_tree$binary)
+test_tree$binary = as.factor(test_tree$binary)
+
+#apply the decision tree alogrithm
+treefit= tree(binary~., data = train_tree)
+
+#(TRAIN)
+tree.pred = predict(treefit, train_tree, type = "class")
+mean(tree.pred==train_tree$binary)
+
+#(TESt)
+tree.pred = predict(treefit, test_tree, type = "class")
+mean(tree.pred==test_tree$binary)
+
+#plot the training tree
+plot(treefit);text(treefit, pretty=0)
+
+```
+Use Cross Validation to Prune Tree
+
+```{r}
+#Cross Validation
+#default is 10-fold cross validation
+cv_tree = cv.tree(treefit, FUN = prune.misclass)
+
+#plot the missclasses vs number of terminal nodes
+#classes drop significantly down to 15 and then begins to rise -  optimal size 15
+pdf('CV_Tree.pdf')
+plot(cv_tree,xlim=c(1,20))
+dev.off()
+
+plot(cv_tree$size ,cv_tree$dev, xlim=c(0,20), type="b", xlab="# of terminal nodes", ylab="CV (misclassification) error")
+
+#prune the tree on the full training data 
+prune.tree = prune.misclass(treefit, best =15)
+
+#Plot the new scaled down tree
+plot(prune.tree); text(prune.tree, pretty=0)
+
+#predict with new pruned tree
+tree.pred_2 = predict(prune.tree, test_tree, type = "class")
+
+#(TRAIN)
+tree.pred_2 = predict(prune.tree, train_tree, type = "class")
+mean(tree.pred==train_tree$binary)
+
+#(TEST)
+#predict with new pruned tree
+tree.pred_2 = predict(prune.tree, test_tree, type = "class")
+mean(tree.pred_2==test_tree$binary)
+
+#Show the table of results
+table(tree.pred_2,test_tree$binary)
+
+```
+#Bagging
+
+
+```{r}
+#import the randome forest package
+require(randomForest)
+data = read.csv("Train_Digits_20180302.csv", header = T)
+train = 1:2000
+
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train_tree = data[train, 2:785]
+test_tree = data[-train, 2:785]
+
+train_rf = data[train,]
+train_rf$binary = as.factor(train_rf$binary)
+
+
+response <- as.factor(data[train,1])
+response2 <- as.factor(data[-train,1])
+
+
+#baggging -- when the number of variables at each split is equal to the mac number of varibles
+rf_fit = randomForest(binary~. , data =train_rf, mtry=784)
+
+
+#(TRAINING)
+rf_pred = predict(rf_fit,train_tree, type = "class")
+mean(rf_pred==response)
+
+
+#(TEST)
+rf_pred = predict(rf_fit,test_tree, type = "class")
+mean(rf_pred==response2)
+
+```
+Random Forests
+
+```{r}
+rm(list = ls())
+#import the randome forest package
+require(randomForest)
+data = read.csv("Train_Digits_20180302.csv", header = T)
+train = 1:2000
+
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train_tree = data[train, 2:785]
+test_tree = data[-train, 2:785]
+
+train_rf = data[train,]
+train_rf$binary = as.factor(train_rf$binary)
+
+response <- as.factor(data[train,1])
+response2 <- as.factor(data[-train,1])
+
+#randomforests with 200 trees and mtry= sqrt(784) -- 28
+rf_fit = randomForest(binary~. , data =train_rf, ntree=1000)
+
+#(TRAINING)
+rf_pred = predict(rf_fit,train_tree, type = "class")
+mean(rf_pred==response)
+
+
+#(TEST)
+rf_pred = predict(rf_fit,test_tree, type = "class")
+mean(rf_pred==response2)
+
+
+# for(mtry in 1:28){
+#   fit = randomForest(binary~. , data =train_rf, ntree=100)
+#   oob.err[mtry] = mean(fit$err.rate[,1]) #calling Out-of-bag Error
+#   pred = predict(fit,test_tree, type = "class") #predict on test data
+#   test.err[mtry]=mean(pred==test_tree$binary)
+#   cat(mtry," ")
+# }
+
+
+#plot the out of bag Error for different mtry
+#matplot(1:mtry, oob.err, pch = 19, col = "blue", type = "b", ylab = "Out of Bag Error", main="Random Forests")
+
+#plot 
+#matplot(1:mtry, test.err, pch = 19, col = "blue", type = "b", ylab = " Classification Rate", main="Random Forests")
+
+#random plot
+
+#tuneRF(train_tree, response,mtryStart=2, ntree=1000,stepFactor=1.5,improve=0.05, plot=TRUE)
+
+
+#randomforests with 200 trees and mtry= sqrt(784) -- 28
+rf_fit = randomForest(binary~. , data =train_rf, ntree=1000, mtry=13)
+
+#(TRAINING)
+rf_pred = predict(rf_fit,train_tree, type = "class")
+mean(rf_pred==response)
+
+
+#(TEST)
+rf_pred = predict(rf_fit,test_tree, type = "class")
+mean(rf_pred==response2)
+
+#Show the table of results
+table(rf_pred,response2)
+
+```
+#Boosted Tree
+
+```{r}
+rm(list = ls())
+require(gbm)
+data = read.csv("Train_Digits_20180302.csv", header = T)
+
+#replace digits with binary even/odd (1/0) + chnage colname
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train = 1:2000
+train_data = data[train, 2:785]
+test_data = data[-train, 2:785]
+
+response <- as.factor(data[train,1])
+response2 <- as.factor(data[-train,1])
+
+boost_fit = gbm(binary~., data=data[train,], distribution = "bernoulli", n.trees = 2000, shrinkage = 0.01, interaction.depth = 4)
+
+summary(boost_fit)
+
+predmat = predict(boost_fit, newdata =data[train,], n.trees = 2000, type = "response")
+
+#classify the probability vector back into classification types (TRAIN)
+result = ifelse(predmat >= 0.5 ,1,0)
+mean(result==response)
+
+
+#classify the probability vector back into classification types (TEST)
+predmat = predict(boost_fit, newdata =data[-train,], n.trees = 2000, type = "response")
+result = ifelse(predmat >= 0.5 ,1,0)
+mean(result==response2)
+
+
+gbmWithCrossValidation = gbm(formula = binary ~ .,
+                             distribution = "bernoulli",
+                             data = data[train,],
+                             n.trees = 1000,
+                             shrinkage = 0.01,
+                             interaction.depth = 4, 
+                             cv.folds = 5,
+                             n.cores = 1)
+
+#used to determine the optimal number of trees -1397
+gbm.perf(boost_fit)
+#new model
+boost_fit = gbm(binary~., data=data[train,], distribution = "bernoulli", n.trees = 1397, shrinkage = 0.01, interaction.depth = 4)
+
+#(Training)
+predmat = predict(boost_fit, newdata =data[train,], n.trees = 1397, type = "response")
+result = ifelse(predmat >= 0.5 ,1,0)
+mean(result==response)
+
+#(test)
+predmat = predict(boost_fit, newdata =data[-train,], n.trees = 1397, type = "response")
+result = ifelse(predmat >= 0.5 ,1,0)
+mean(result==response2)
+
+
+```
+
+
+#SVM
+
+```{r}
+rm(list = ls())
+require(e1071)
+require(probsvm)
+data = read.csv("Train_Digits_20180302.csv", header = T)
+
+#replace digits with binary even/odd (1/0) + chnage colname
+data$Digit = ifelse(data$Digit %% 2 == 0,1,0)
+names(data)[1]<-paste("binary")
+
+train = 1:2000
+train_data = data[train, 2:785]
+test_data = data[-train, 2:785]
+
+#defining the factors
+response <- as.factor(data[train,1])
+response2 <- as.factor(data[-train,1])
+
+
+#need to peform Principle Compenent Analysis (PCA) on variables (TRAIN)
+pca_train = prcomp(train_data, scale=FALSE, center = T)
+
+
+#Determine the number of components required
+eigs = pca_train$sdev^2
+summ= rbind(
+  SD = sqrt(eigs),
+  Proportion = eigs/sum(eigs),
+  Cumulative = cumsum(eigs)/sum(eigs))
+#57 components
+which(summ[3,]<=0.85)
+
+plot(summ[3,], main="Proportion of Variance Explained vs No. Components", xlab = "No. Components", ylab = "Proportion of Variance", col='blue')
+abline(v=57, col='red')
+
+
+#only select 
+rotate<-pca_train$rotation[,1:57]
+pca_train<-as.matrix(scale(train_data,center = TRUE, scale=FALSE))%*%(rotate)
+
+#PCA onn test data
+pca_test<-as.matrix(scale(test_data,center = TRUE, scale=FALSE))%*%(rotate)
+
+
+#perform SVM on the training data
+svm_fit = svm(pca_train,response, kernel="polynomial", degree =2)
+
+
+#Training data 
+svm_pred <-predict(svm_fit,pca_train)
+mean(svm_pred==response)
+
+#Test Data
+svm_pred <-predict(svm_fit,pca_test)
+mean(svm_pred==response2)
+
+#tune the model
+tune_out = tune(svm,train.x=pca_train ,train.y=response , kernel="polynomial", degree =2,ranges = list(cost= c(0.001,0.1,1,5),coef0= c(0,1,2)))
+#gamma= c(0.5,1,2,3)
+summary(tune_out)
+
+#enhance model with CV paramters
+svm_fit = svm(pca_train,response, kernel="polynomial", degree = 2, cost=1)
+svm_pred <-predict(svm_fit,pca_test)
+mean(svm_pred==response2)
+
+svm_fit = probsvm(pca_train,response, kernel="polynomial")
+
+
+```
+Neural Networks
+
+```{r}
+require(h2o)
+rain<-read.csv("Train_Digits_20180302.csv")
+
+library(h2o)
+#install.packages("h2o")
+h2o.init()
+localH2O = h2o.init() 
+train[,1] = as.factor(train[,1])
+train_h2o = as.h2o(train)
+test_h2o = as.h2o(test)
+model =
+  h2o.deeplearning(x = 2:785,  # column numbers for predictors
+                   y = 1,   # column number for label
+                   training_frame = train_h2o, # data in H2O format
+                   activation = "RectifierWithDropout", # algorithm
+                   input_dropout_ratio = 0.2, # % of inputs dropout
+                   hidden_dropout_ratios = c(0.5,0.5), # % for nodes dropout
+                   balance_classes = TRUE, 
+                   hidden = c(100,100), # two layers of 100 nodes
+                   momentum_stable = 0.99,
+                   nesterov_accelerated_gradient = T, # use it for speed
+                   epochs = 15, ignore_const_cols = F) # no. of epochs
+
+h2o.confusionMatrix(model)
+h2o.performance(model)
+1-h2o.confusionMatrix(model)$Error[11]
+test_h2o = as.h2o(test)
+h2o_y_test <- h2o.predict(model, test_h2o)
+df_y_test = as.data.frame(h2o_y_test)
+df_y_test = data.frame(ImageId = seq(1,length(df_y_test$predict)), Label = df_y_test$predict)
+write.csv(df_y_test, file = "submission-r-h2o.csv", row.names=F)
+h2o.shutdown(prompt = F)
+
+sessionInfo()
+
+  
+```
+
+
+
