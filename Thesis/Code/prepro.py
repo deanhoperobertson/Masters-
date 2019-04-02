@@ -34,3 +34,25 @@ def readstring(filename):
         sentences.append(sentence)
         sentence = []
     return sentences
+
+def get_sentence(dataset,sentence_number):
+    sentence = []
+    for i in dataset[sentence_number-1]:
+        sentence.append(i[0])
+    return(sentence)
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
+
+def extract_words(dictionary):
+    words = []
+    tags = []
+    for sentence in dictionary:
+        for word in sentence:
+            words.append(word[0])
+            tags.append(word[1]) 
+    return(words, tags)   
