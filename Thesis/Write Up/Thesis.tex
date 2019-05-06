@@ -1,0 +1,252 @@
+%% AUTOR DE LA PLANTILLA: DEAN HOPE ROBERTSON
+
+\documentclass[12pt,a4paper,oneside]{report}
+
+\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[utf8]{inputenc}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{multicol}
+\usepackage{longtable}
+\usepackage[refpages]{gloss}
+\usepackage{float}
+\usepackage{anysize}
+\usepackage{appendix}
+\usepackage{lscape} 
+\usepackage{pdflscape}
+\usepackage{multirow}
+\usepackage{listings}
+\usepackage{color}
+\usepackage{setspace}
+\usepackage{enumerate} 
+\usepackage{hyperref} 
+\usepackage[backend=biber,style=authoryear,natbib=true]{biblatex}
+\addbibresource{bibliography.bib}
+
+
+\begin{document}
+
+%----------------------------------------------------------------------------------------
+%	CONFIGURACION
+%----------------------------------------------------------------------------------------
+
+\marginsize{3.0cm}{3.0cm}{1.5cm}{1.5cm}
+\renewcommand*{\contentsname}{Contents}
+\renewcommand*{\listtablename}{List of Figures}
+\renewcommand*{\listfigurename}{List of Tables}
+\renewcommand{\baselinestretch}{1.0}
+\renewcommand{\appendixname}{Appendices}
+\renewcommand{\appendixtocname}{Appendices}
+\renewcommand{\appendixpagename}{Appendices}
+\renewcommand{\thetable}{\arabic{chapter}.\arabic{table}}
+\renewcommand*{\tablename}{Tabla}
+%\renewcommand*{\chaptername}{Capítulo}
+\renewcommand*{\thechapter}{\Roman{chapter}}
+\renewcommand{\thesection}{\arabic{chapter}.\arabic{section}}
+\renewcommand{\figurename}{Figura}
+\renewcommand{\thefigure}{\arabic{chapter}.\arabic{figure}}
+\renewcommand{\theequation}{\arabic{chapter}.\arabic{equation}}
+
+%----------------------------------------------------------------------------------------
+%	PORTADA
+%----------------------------------------------------------------------------------------
+
+\begin{titlepage}
+ 
+\begin{center}
+ 
+{\huge \bf UNIVERSITY OF CAPE TOWN}\\
+
+\noindent\rule{8cm}{0.4pt}
+
+{\Large Named Entity Recognition with Neural Networks}\\
+\noindent\rule{8cm}{0.4pt}
+
+
+\begin{center}
+\includegraphics[width=10cm, height=6cm]{imagenes/UCT_logo2.png}
+\end{center}
+\degree{M.Sc. Data Science}
+
+\href{http://www.science.uct.ac.za/sci/departments/study-statistical-sciences}{Department of Statistical Sciences}
+
+\vspace{1cm}
+\title{} % titulo de tu tesis para latex
+{\bf \large . }\\[1cm] % titulo de tu tesis
+
+
+\begin{multicols}{2}
+{{\bf Author}: Dean Hope Robertson }\\[2.0cm] % nombres del autor o autores
+{{\bf Supervisor}: Stefan Britz \newline University of Cape Town }\\[2.0cm]
+\end{multicols}
+
+{\large Jan, 2019-}\\[0.2cm] % fecha de sustentación
+{London, United Kingdom}
+\end{center}
+
+\end{titlepage}
+
+\newpage
+\newpage
+
+%----------------------------------------------------------------------------------------
+%	Declaration
+%----------------------------------------------------------------------------------------
+
+\chapter*{\centering \large Declaration} % si no queremos que añada la palabra "Capitulo"
+\addcontentsline{toc}{section}{Declaration} % si queremos que aparezca en el índice
+\noindent I, Dean Hope Robertson, declare that this project titled, \enquote{} and the work presented in it are my own. I confirm that:
+
+\begin{itemize} 
+\item This work was done wholly or mainly while in candidature for a master's degree at this University.
+\item Where any part of this dissertation has previously been submitted for a degree or any other qualification at this University or any other institution, this has been clearly stated.
+\item Where I have consulted the published work of others, this is always clearly attributed.
+\item Where I have quoted from the work of others, the source is always given. With the exception of such quotations, this project is entirely my own work.
+\item I have acknowledged all main sources of help.
+\item Where the project is based on work done by myself jointly with others, I have made clear exactly what was done by others and what I have contributed myself.
+\end{itemize}
+\vspace{5em}
+\noindent Signed:\\
+\rule[0.5em]{25em}{0.5pt} % This prints a line for the signature
+ 
+\noindent Date:\\
+\rule[0.5em]{25em}{0.5pt} % This prints a line to write the date
+\markboth{Declaration}{Declaration} % encabezado
+\doublespacing\textbf{}
+
+%----------------------------------------------------------------------------------------
+%	Abstract
+%----------------------------------------------------------------------------------------
+
+\chapter*{\centering \large Abstract} % si no queremos que añada la palabra "Capitulo"
+\addcontentsline{toc}{section}{Abstract} % si queremos que aparezca en el índice
+\markboth{Abstract}{Abstract} % encabezado
+\doublespacing
+
+%----------------------------------------------------------------------------------------
+%	Acknowledgements
+%----------------------------------------------------------------------------------------
+
+\chapter*{\centering \large Acknowledgements}
+\addcontentsline{toc}{section}{Acknowledgements}
+Special thanks of gratitude for his guidance and expertise of my supervisor, Stefan Britz, and for financial assistance to Bloomberg LP. To my family and partner for their constant love and support. 
+
+\markboth{Acknowledgements}{Acknowledgements}
+
+
+%----------------------------------------------------------------------------------------
+%	TABLA DE CONTENIDOS
+%---------------------------------------------------------------------------------------
+
+\tableofcontents
+\cleardoublepage
+\listoftables
+\listoffigures 
+\makegloss
+\newpage
+
+%----------------------------------------------------------------------------------------
+%	Acknowledgements
+%----------------------------------------------------------------------------------------
+
+\chapter*{\centering \large Acknowledgements}
+\addcontentsline{toc}{section}{Acknowledgements}
+\markboth{Acknowledgements}{Acknowledgements}
+
+%----------------------------------------------------------------------------------------
+%	INTRODUCTION
+%----------------------------------------------------------------------------------------
+
+\chapter{Introduction}
+
+\section{Problem description}
+
+\section{Background to Investigation}
+
+\section{Objectives of investigation}
+
+\subsection{General}
+
+\subsection{Specific}
+
+\section{Justification}
+
+
+%----------------------------------------------------------------------------------------
+%	MARCO TEORICO
+%----------------------------------------------------------------------------------------
+
+\chapter{Literature Review}
+
+\section{Unknown}
+
+\section{Unknown}
+
+%----------------------------------------------------------------------------------------
+%	METODOLOGÍA
+%----------------------------------------------------------------------------------------
+\chapter{Methodology}
+
+\section{Significance of this research}
+
+\section{Datasets}
+
+\section{Text Processing}
+\subsection{Word Embeddings}
+
+\section{Model Architecture}
+\subsection{NULL Model}
+\subsection{Base Model}
+\subsection{Feed Forward Neural Network}
+\subsection{Bi-directional LSTM Neural Network}
+
+\section{Hyper-parameter Optimization}
+
+%----------------------------------------------------------------------------------------
+%	RESULTADOS
+%----------------------------------------------------------------------------------------
+
+\chapter{Results}
+\section{Model comparison}
+
+%----------------------------------------------------------------------------------------
+%	DISCUCIÓN DE RESULTADOS
+%----------------------------------------------------------------------------------------
+
+\chapter{DISCUSIÓN DE RESULTADOS}
+
+\section{Constratación de hipótesis con los resultados}
+
+\section{Contrastación de resultados con otros estudios similares}
+
+%----------------------------------------------------------------------------------------
+%	CONCLUSIONES
+%----------------------------------------------------------------------------------------
+
+\chapter{Conclusions and Recommendations}
+
+\section{Recommendations}
+
+
+%----------------------------------------------------------------------------------------
+%	BIBLIOGRAFIA
+%----------------------------------------------------------------------------------------
+
+\printbibliography[heading=bibintoc]
+
+%----------------------------------------------------------------------------------------
+%----------------------------------------------------------------------------------------
+
+\appendix
+\clearpage
+\addappheadtotoc
+\appendixpage
+
+\chapter{List of Figures}
+
+\chapter{List Of Tables}
+
+\end{document} 
+
+
