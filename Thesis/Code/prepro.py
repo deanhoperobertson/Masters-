@@ -41,6 +41,12 @@ def get_sentence(dataset,sentence_number):
         sentence.append(i[0])
     return(sentence)
 
+def get_label(dataset,sentence_number):
+    sentence = []
+    for i in dataset[sentence_number-1]:
+        sentence.append(i[1])
+    return(sentence)
+
 def is_number(s):
     try:
         float(s)
@@ -55,4 +61,4 @@ def extract_words(dictionary):
         for word in sentence:
             words.append(word[0])
             tags.append(word[1]) 
-    return(words, tags)   
+    return(words,tags)   
