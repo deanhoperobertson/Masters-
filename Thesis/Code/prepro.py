@@ -10,7 +10,7 @@ def readfile(filename):
                 sentence = []
             continue
         splits = line.split(' ')
-        sentence.append([splits[0], splits[-1].strip()])
+        sentence.append([splits[0], splits[-1].strip(),splits[-2].strip(),splits[-3].strip()])
 
     if len(sentence) > 0:
         sentences.append(sentence)
@@ -45,6 +45,12 @@ def get_label(dataset,sentence_number):
     sentence = []
     for i in dataset[sentence_number-1]:
         sentence.append(i[1])
+    return(sentence)
+
+def get_all(dataset,sentence_number):
+    sentence = []
+    for i in dataset[sentence_number-1]:
+        sentence.append([i[0],i[1],i[2],i[3]])
     return(sentence)
 
 def is_number(s):
