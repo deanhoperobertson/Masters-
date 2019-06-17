@@ -67,4 +67,10 @@ def extract_words(dictionary):
         for word in sentence:
             words.append(word[0])
             tags.append(word[1]) 
-    return(words,tags)   
+    return(words,tags)
+
+def get_corpus(dataset):
+    words =[] #cater for lower case words
+    for i in dataset:
+        words.append(i[0][0])
+    return([len(words),len(set(words))])
