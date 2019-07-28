@@ -75,3 +75,14 @@ def get_corpus(dataset):
         for word in sentence:
             words.append(word[0])
     return([len(words),len(set(words))])
+
+def partial_tags(predictions):
+    output = list()
+    for i in predictions:
+        if i =="O":
+            output.append(i)
+        elif "MISC" in i:
+            output.append(i[-4:])
+        else:
+            output.append(i[-3:])
+    return output
